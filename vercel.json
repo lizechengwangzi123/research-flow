@@ -1,16 +1,2 @@
 {
-  "functions": {
-    "api/config.js": {
-      "runtime": "nodejs22.x",
-      "regions": ["hkg1"]
-    },
-    "api/login.js": {
-      "runtime": "nodejs22.x",
-      "regions": ["hkg1"]
-    },
-    "api/request-reset.js": {
-      "runtime": "nodejs22.x",
-      "regions": ["hkg1"]
-    }
-  }
 }
