@@ -1,0 +1,10 @@
+node_modules
+.env
+research-flow.db
+research-flow.db-shm
+research-flow.db-wal
+data
+cookies.txt
+admin-cookies.txt
+casey-cookies.txt
+npm-debug.log

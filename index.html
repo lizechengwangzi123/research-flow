@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#15324c" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <title>Research Flow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div id="authScreen" class="auth-shell">
+      <section class="auth-card auth-brand">
+        <p class="eyebrow">Research Article Manager</p>
+        <h1>Research Flow</h1>
+        <p class="muted">
+          Track research article progress with cloud auth, realtime updates,
+          friend dashboards, and installable web access on desktop or mobile.
+        </p>
+        <div class="auth-highlights">
+          <span>Supabase Auth</span>
+          <span>Realtime sync</span>
+          <span>Interactive charts</span>
+          <span>PWA install</span>
+        </div>
+      </section>
+
+      <section class="auth-card">
+        <div class="auth-tabs">
+          <button class="auth-tab is-active" data-auth-view="login">Login</button>
+          <button class="auth-tab" data-auth-view="register">Register</button>
+          <button class="auth-tab" data-auth-view="forgot">Forgot</button>
+        </div>
+
+        <form id="loginForm" class="auth-form">
+          <p class="section-label">Cloud Login</p>
+          <p class="helper-text">Use your verified email or username and password.</p>
+          <label>
+            <span>Username or Email</span>
+            <input type="text" name="login" placeholder="Enter username or email" required />
+          </label>
+          <label>
+            <span>Password</span>
+            <input type="password" name="password" placeholder="Enter password" required />
+          </label>
+          <button type="submit" class="primary-button">Login</button>
+          <button type="button" id="showForgotButton" class="text-button">
+            I forgot my account number/password
+          </button>
+        </form>
+
+        <form id="registerForm" class="auth-form hidden">
+          <label>
+            <span>Display Name</span>
+            <input type="text" name="displayName" placeholder="Your full name" required />
+          </label>
+          <label>
+            <span>Email</span>
+            <input type="email" name="email" placeholder="name@example.com" required />
+          </label>
+          <label>
+            <span>Username</span>
+            <input type="text" name="username" placeholder="Create username" required />
+          </label>
+          <label>
+            <span>Password</span>
+            <input type="password" name="password" placeholder="Create password" required />
+          </label>
+          <button type="submit" class="primary-button">Create account</button>
+        </form>
+
+        <form id="forgotForm" class="auth-form hidden">
+          <label>
+            <span>Email</span>
+            <input type="email" name="email" placeholder="Enter your email" required />
+          </label>
+          <label>
+            <span>Username (optional)</span>
+            <input type="text" name="username" placeholder="Enter username if you remember it" />
+          </label>
+          <button type="submit" class="primary-button">Send reset email</button>
+        </form>
+
+        <form id="resetForm" class="auth-form hidden">
+          <label>
+            <span>New Password</span>
+            <input type="password" name="password" placeholder="Create a new password" required />
+          </label>
+          <button type="submit" class="primary-button">Reset password</button>
+        </form>
+
+        <div id="authMessage" class="message-box" aria-live="polite"></div>
+      </section>
+    </div>
+
+    <div id="appShell" class="page-shell hidden">
+      <aside class="left-nav">
+        <div class="brand-card">
+          <p class="eyebrow">Research Flow</p>
+          <h2>Article Workspace</h2>
+          <p class="muted">
+            Review dashboard statistics, inspect details, and manage article
+            progress.
+          </p>
+        </div>
+
+        <div class="current-profile-card">
+          <span class="profile-chip" id="currentProfileCode">USR-0000</span>
+          <div>
+            <h3 id="currentDisplayName">Researcher</h3>
+            <p class="muted" id="currentUsername">@username</p>
+          </div>
+        </div>
+
+        <nav class="nav-links" aria-label="Primary">
+          <button class="nav-link is-active" data-view="dashboard">Dashboard</button>
+          <button class="nav-link" data-view="details">Details</button>
+        </nav>
+
+        <button id="logoutButton" class="secondary-button">Logout</button>
+      </aside>
+
+      <main class="main-content">
+        <section class="hero-panel">
+          <div>
+            <p class="eyebrow" id="heroEyebrow">My Dashboard</p>
+            <h2 id="heroTitle">Submission Insights</h2>
+            <p class="muted" id="heroDescription">
+              Review your publication pipeline, interactive metrics, and
+              editorial decision timing across journals.
+            </p>
+          </div>
+          <div class="hero-meta">
+            <div>
+              <span class="hero-label">Viewing</span>
+              <strong id="heroProfileLabel">admin</strong>
+            </div>
+            <div>
+              <span class="hero-label">Visible Articles</span>
+              <strong id="heroVisibleArticles">0</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="stats-grid" id="statsGrid"></section>
+
+        <section class="content-panel" id="dashboardView">
+          <div class="panel-header panel-header-stack">
+            <div>
+              <p class="section-label">Interactive Charts</p>
+              <h3>Research progress graphs</h3>
+            </div>
+            <div class="chart-tabs">
+              <button class="chart-tab is-active" data-chart="status">Status Mix</button>
+              <button class="chart-tab" data-chart="timeline">Submission Timeline</button>
+              <button class="chart-tab" data-chart="timing">Review Timing</button>
+            </div>
+          </div>
+          <div id="chartCard" class="chart-card"></div>
+
+          <div class="timeline-panel">
+            <div class="panel-header">
+              <div>
+                <p class="section-label">Recent Activity</p>
+                <h3>Latest article milestones</h3>
+              </div>
+            </div>
+            <div class="timeline-list" id="timelineList"></div>
+          </div>
+
+          <div id="adminSection" class="admin-section hidden">
+            <div class="panel-header panel-header-stack">
+              <div>
+                <p class="section-label">Admin</p>
+                <h3>User management</h3>
+              </div>
+              <button id="loadAdminButton" class="primary-button">Load all users</button>
+            </div>
+            <p class="helper-text">
+              For safety, passwords are never shown in plain text. Admin can see
+              usernames, emails, verification state, account state, and trigger
+              password reset emails.
+            </p>
+            <div id="adminMessage" class="message-box" aria-live="polite"></div>
+            <div id="adminUsersTable" class="admin-table-wrap"></div>
+          </div>
+        </section>
+
+        <section class="content-panel hidden" id="detailsView">
+          <div class="panel-header panel-header-stack">
+            <div>
+              <p class="section-label">Article Details</p>
+              <h3>Search, sort, and edit research progress</h3>
+            </div>
+            <div class="filters">
+              <label class="input-wrap">
+                <span class="sr-only">Search articles</span>
+                <input
+                  type="search"
+                  id="searchInput"
+                  placeholder="Search by title, authors, dates, or journal"
+                />
+              </label>
+              <label class="select-wrap">
+                <span class="sr-only">Sort articles</span>
+                <select id="sortSelect">
+                  <option value="submittedDate">Submitted Date</option>
+                  <option value="firstAuthor">First Author Family Name</option>
+                  <option value="correspondingAuthor">Corresponding Author</option>
+                  <option value="status">Article Status</option>
+                  <option value="journal">Journal Name</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div class="management-panel" id="managementPanel">
+            <div class="panel-header panel-header-stack">
+              <div>
+                <p class="section-label">Data Management</p>
+                <h3 id="articleFormTitle">Add a new article record</h3>
+              </div>
+              <button id="resetArticleFormButton" class="secondary-button" type="button">
+                New Article
+              </button>
+            </div>
+            <p class="helper-text">
+              When you click one of your own article cards below, the form will
+              load that record so you can update your research progress.
+            </p>
+            <form id="articleForm" class="article-form">
+              <input name="id" type="hidden" />
+              <input name="title" type="text" placeholder="Article title" required />
+              <input name="journal" type="text" placeholder="Journal name" required />
+              <input name="submittedDate" type="date" required />
+              <input name="firstAuthor" type="text" placeholder="First author's family name" required />
+              <input name="correspondingAuthor" type="text" placeholder="Corresponding author's last name" required />
+              <select name="status" required>
+                <option value="Under Review">Under Review</option>
+                <option value="With Editor">With Editor</option>
+                <option value="Revision Requested">Revision Requested</option>
+                <option value="Accepted">Accepted</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+              <input name="reviewDays" type="number" min="0" placeholder="Review days" />
+              <input name="editorDays" type="number" min="0" placeholder="Editor days" />
+              <input name="publishDays" type="number" min="0" placeholder="Publish days" />
+              <input name="decisionDate" type="date" />
+              <input name="revisionRound" type="text" placeholder="Revision stage" />
+              <input name="manuscriptType" type="text" placeholder="Manuscript type" />
+              <input name="coAuthors" type="text" placeholder="Authors" />
+              <textarea name="notes" rows="3" placeholder="Notes"></textarea>
+              <button type="submit" class="primary-button">Save article</button>
+            </form>
+            <div id="articleMessage" class="message-box" aria-live="polite"></div>
+          </div>
+
+          <div class="details-layout">
+            <div class="article-list" id="articleList"></div>
+            <article class="article-detail-card" id="articleDetail">
+              <p class="section-label">Article Record</p>
+              <h3>Select an article</h3>
+              <p class="muted">
+                Choose any article to inspect dates, review timing, editorial
+                timing, and author information.
+              </p>
+            </article>
+          </div>
+        </section>
+      </main>
+
+      <aside class="right-sidebar" id="rightSidebar">
+        <button id="friendToggle" class="sidebar-toggle" type="button" aria-expanded="true">
+          Friends
+        </button>
+        <section class="friends-panel">
+          <div class="panel-header panel-header-stack">
+            <div>
+              <p class="section-label">Friends</p>
+              <h3>科研进度</h3>
+            </div>
+            <form id="friendForm" class="friend-form">
+              <label class="input-wrap">
+                <span class="sr-only">Friend ID or username</span>
+                <input type="text" id="friendLookup" placeholder="Friend ID or username" />
+              </label>
+              <button type="submit" class="primary-button">Add</button>
+            </form>
+          </div>
+          <p class="helper-text">
+            View your own dashboard or switch to a friend's dashboard and
+            article details.
+          </p>
+          <div id="friendMessage" class="message-box" aria-live="polite"></div>
+          <div id="friendsList" class="friends-list"></div>
+        </section>
+      </aside>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>

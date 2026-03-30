@@ -1,0 +1,10 @@
+{
+  "name": "research-flow",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Research article management web app deployed on Vercel with Supabase auth, data, and realtime.",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "npx vercel dev"
+  }
+}
