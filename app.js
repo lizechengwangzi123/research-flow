@@ -704,14 +704,6 @@ registerForm.addEventListener("submit", async (event) => {
   const displayName = String(formData.get("displayName") || "").trim();
 
   try {
-    const { data: existing, error: existingError } = await state.supabase
-      .from("profiles")
-      .select("username")
-      .eq("username", username)
-      .maybeSingle();
-    if (existingError) throw existingError;
-    if (existing) throw new Error("Username already exists");
-
     const { error } = await state.supabase.auth.signUp({
       email,
       password,

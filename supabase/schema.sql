@@ -76,6 +76,19 @@ begin
 end;
 $$;
 
+create or replace function public.is_admin_user()
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select coalesce(
+    (select is_admin from public.profiles where id = auth.uid()),
+    false
+  );
+$$;
+
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
 after insert on auth.users
@@ -95,10 +108,7 @@ using (
     select 1 from public.friendships f
     where f.user_id = auth.uid() and f.friend_id = profiles.id
   )
-  or exists (
-    select 1 from public.profiles me
-    where me.id = auth.uid() and me.is_admin
-  )
+  or public.is_admin_user()
 );
 
 drop policy if exists "profiles_update_self" on public.profiles;
@@ -118,10 +128,7 @@ using (
     select 1 from public.friendships f
     where f.user_id = auth.uid() and f.friend_id = articles.user_id
   )
-  or exists (
-    select 1 from public.profiles me
-    where me.id = auth.uid() and me.is_admin
-  )
+  or public.is_admin_user()
 );
 
 drop policy if exists "articles_insert_self" on public.articles;
@@ -275,6 +282,7 @@ grant select on public.friendships to authenticated;
 grant execute on function public.add_friend_by_username(text) to authenticated;
 grant execute on function public.get_accessible_profiles() to authenticated;
 grant execute on function public.admin_list_profiles() to authenticated;
+grant execute on function public.is_admin_user() to authenticated;
 
 alter table public.profiles replica identity full;
 alter table public.articles replica identity full;
