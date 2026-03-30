@@ -647,8 +647,14 @@ async function initializeSupabase() {
     }
 
     if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-      await loadSession();
-      subscribeRealtime();
+      try {
+        await loadSession();
+        subscribeRealtime();
+      } catch (error) {
+        authScreen.classList.remove("hidden");
+        appShell.classList.add("hidden");
+        showMessage(authMessage, error.message || "Signed in, but failed to load your profile.", true);
+      }
       return;
     }
 
@@ -659,8 +665,14 @@ async function initializeSupabase() {
     }
   });
 
-  await loadSession();
-  if (state.authUser) subscribeRealtime();
+  try {
+    await loadSession();
+    if (state.authUser) subscribeRealtime();
+  } catch (error) {
+    authScreen.classList.remove("hidden");
+    appShell.classList.add("hidden");
+    showMessage(authMessage, error.message || "Failed to load your profile.", true);
+  }
 }
 
 authTabs.forEach((button) => {
