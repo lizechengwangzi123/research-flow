@@ -688,19 +688,30 @@ loginForm.addEventListener("submit", async (event) => {
   const password = String(formData.get("password") || "");
 
   try {
-    const response = await fetch("/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ login, password }),
-    });
-    const payload = await response.json();
-    if (!response.ok) throw new Error(payload.error || "Login failed");
+    showMessage(authMessage, "Logging in...");
 
-    const { error } = await state.supabase.auth.setSession({
-      access_token: payload.session.access_token,
-      refresh_token: payload.session.refresh_token,
-    });
-    if (error) throw error;
+    if (login.includes("@")) {
+      const { error } = await state.supabase.auth.signInWithPassword({
+        email: login,
+        password,
+      });
+      if (error) throw error;
+    } else {
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ login, password }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Login failed");
+
+      const { error } = await state.supabase.auth.setSession({
+        access_token: payload.session.access_token,
+        refresh_token: payload.session.refresh_token,
+      });
+      if (error) throw error;
+    }
+
     loginForm.reset();
   } catch (error) {
     showMessage(authMessage, error.message, true);
