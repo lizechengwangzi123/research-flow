@@ -10,6 +10,7 @@ const state = {
   chart: "status",
   adminUsers: [],
   subscriptions: [],
+  isRecoveryFlow: false,
 };
 
 const authScreen = document.getElementById("authScreen");
@@ -512,9 +513,14 @@ function renderAdminUsers() {
   `;
 }
 
-async function fetchOwnProfile() {
-  const { data, error } = await state.supabase.from("profiles").select("*").eq("id", state.authUser.id).single();
+async function fetchOwnProfile(userId) {
+  if (!userId) {
+    throw new Error("No authenticated user id was provided.");
+  }
+
+  const { data, error } = await state.supabase.from("profiles").select("*").eq("id", userId).single();
   if (error) throw error;
+  if (!data) throw new Error("Your profile record was not found.");
   return data;
 }
 
@@ -579,9 +585,17 @@ async function loadSession() {
     return;
   }
 
+  if (state.isRecoveryFlow) {
+    authScreen.classList.remove("hidden");
+    appShell.classList.add("hidden");
+    switchAuthView("reset");
+    showMessage(authMessage, "Create a new password for your account.");
+    return;
+  }
+
   authScreen.classList.add("hidden");
   appShell.classList.remove("hidden");
-  state.authUser = await fetchOwnProfile();
+  state.authUser = await fetchOwnProfile(session.user.id);
   state.accessibleProfiles = await fetchAccessibleProfiles();
   await loadProfile(state.authUser.username);
 }
@@ -615,7 +629,11 @@ function subscribeRealtime() {
     })
     .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, async () => {
       if (state.authUser) {
-        state.authUser = await fetchOwnProfile();
+        const {
+          data: { session },
+        } = await state.supabase.auth.getSession();
+        if (!session) return;
+        state.authUser = await fetchOwnProfile(session.user.id);
         state.accessibleProfiles = await fetchAccessibleProfiles();
         await loadProfile(state.viewedProfile?.username || state.authUser.username);
       }
@@ -631,6 +649,11 @@ async function initializeSupabase() {
     throw new Error("Set SUPABASE_URL and SUPABASE_ANON_KEY in Vercel project settings.");
   }
 
+  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  state.isRecoveryFlow =
+    hashParams.get("type") === "recovery" ||
+    window.location.search.includes("type=recovery");
+
   state.supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, {
     auth: {
       persistSession: true,
@@ -641,6 +664,7 @@ async function initializeSupabase() {
 
   state.supabase.auth.onAuthStateChange(async (event) => {
     if (event === "PASSWORD_RECOVERY") {
+      state.isRecoveryFlow = true;
       switchAuthView("reset");
       showMessage(authMessage, "Create a new password for your account.");
       return;
@@ -781,6 +805,8 @@ resetForm.addEventListener("submit", async (event) => {
     const { error } = await state.supabase.auth.updateUser({ password });
     if (error) throw error;
     resetForm.reset();
+    state.isRecoveryFlow = false;
+    await state.supabase.auth.signOut();
     showMessage(authMessage, "Password updated. You can continue using the app.");
     switchAuthView("login");
   } catch (error) {
